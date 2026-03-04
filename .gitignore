@@ -37,6 +37,7 @@ build/
 # Configurações locais
 .env
 .env.local
+/ENV_DIR
 
 # Chrome extension specific
 # Mantenha os assets commitados, mas ignore backups deles

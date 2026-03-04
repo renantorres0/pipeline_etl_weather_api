@@ -1,0 +1,43 @@
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (se adicionar build process no futuro)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Builds e distribuição
+dist/
+build/
+*.zip
+*.crx
+*.pem
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.log
+/data
+/config
+
+# Backups
+*-backup/
+*.bak
+
+# Configurações locais
+.env
+.env.local
+
+# Chrome extension specific
+# Mantenha os assets commitados, mas ignore backups deles
+assets/*-backup.*

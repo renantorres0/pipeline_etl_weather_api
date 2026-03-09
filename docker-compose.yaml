@@ -334,6 +334,63 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+  # ── Webhook server ──────────────────────────────────────────────────────────
+  dashboard-webhook:
+    image: python:3.12-slim
+    container_name: dashboard-webhook
+    working_dir: /app
+    volumes:
+      - ${AIRFLOW_PROJ_DIR:-.}/dashboard:/app
+      - ${AIRFLOW_PROJ_DIR:-.}/config:/app/config
+    environment:
+      WEBHOOK_TOKEN: ${WEBHOOK_TOKEN:123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ}
+    command: >
+      bash -c "
+        pip install fastapi uvicorn python-dotenv --quiet &&
+        python webhook_server.py
+      "
+    ports:
+      - "8502:8502"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8502/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── Streamlit dashboard ─────────────────────────────────────────────────────
+  dashboard:
+    image: python:3.12-slim
+    container_name: dashboard-streamlit
+    working_dir: /app
+    volumes:
+      - ${AIRFLOW_PROJ_DIR:-.}/dashboard:/app
+      - ${AIRFLOW_PROJ_DIR:-.}/config:/app/config
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432          # porta interna do container (não a 5433 do host)
+      WEBHOOK_TOKEN: ${WEBHOOK_TOKEN:123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ}
+    command: >
+      bash -c "
+        pip install streamlit plotly pandas sqlalchemy psycopg2-binary
+                    python-dotenv --quiet &&
+        streamlit run app.py
+          --server.port=8501
+          --server.address=0.0.0.0
+          --server.headless=true
+          --browser.gatherUsageStats=false
+      "
+    ports:
+      - "8501:8501"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   postgres-db-volume:
